@@ -19,7 +19,7 @@ match_id <- matches_summoner_cleaned$gameId
 
 # historical stats of matches
 matches_game <- get_multiple("https://euw1.api.riotgames.com/lol/match/v4/matches/", identifier = match_id, "text")
-# save(matches_game, file = "matches_game.RData")
+# save(matches_game, file = "data\matches_game.RData")
 # load("matches_game.RData")
 
 # getting all players info in each match
