@@ -23,7 +23,7 @@ get_multiple <- function(url_component, identifier,  as = "parsed"){
     a[[m]] <- get_content(url_component, i, as = "parsed")
     # rate limit of 20 per sec
     Sys.sleep(0.05)
-    if (m == 100) {
+    if (m == 80) {
       # rate limit of 100 per 2 mins
       Sys.sleep(120)
     }
