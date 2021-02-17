@@ -1,4 +1,2 @@
 # riot league of legends game constants
-###### This is from R studio
-###### 20 requests every 1 seconds(s)
-###### 100 requests every 2 minutes(s)
+####### This is from R studio
