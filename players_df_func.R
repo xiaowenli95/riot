@@ -1,7 +1,8 @@
 library(tidyverse)
 
-get_win_rate <- function(summoner_name){
-  players_df <- get_players_dataframe(summoner_name)
+
+source("C:/Users/jmlhz/Documents/riot/players_df.R")
+get_win_rate <- function(summoner_name, players_df){
   # calculate win rate of the summoner
   win_rate <- players_df %>%
     filter(summonerName == summoner_name) %>%
@@ -10,7 +11,7 @@ get_win_rate <- function(summoner_name){
   return(win_rate)
 }
 
-who_i_play_with <- function(summoner_name){
+who_i_play_with <- function(summoner_name, players_df){
   # prep: summoner win label
   matches_summoner_win <- players_df %>%
     group_by(matchid) %>%

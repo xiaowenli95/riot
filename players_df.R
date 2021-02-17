@@ -63,9 +63,9 @@ get_players_dataframe <- function(summoner_name){
   players_df <- map_dfr(players, ~map_dfr(.x, `[`, players_attributes)) %>%
     # bind columns and rows from the list
     bind_cols(tibble(rep(matchid, each = 10)), 
-              tibble(rep(1:10, times = 100))) %>%
-    rename(matchid = `rep(matchid, each = 10)`,
-           participant_label = `rep(1:10, times = 100)`)
+              tibble(rep(1:10, times = length(matches_game)))) %>%
+    rename(matchid = `rep(matchid, each = 10)`)
+           # participant_label = `rep(1:10, times = length(matches_game)`)
   
   # get win&lose info of a participant
   players_wl <- matches_game %>%
