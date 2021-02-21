@@ -1,5 +1,5 @@
 .Rproj.user
 .Rhistory
-.RData
+*.RData
 .Ruserdata
-C:/Users/jmlhz/Documents/riot/data/**
+*.csv
