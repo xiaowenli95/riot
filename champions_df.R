@@ -4,7 +4,7 @@ current_patch <- "11.4.1"
 champion_summary_url <- paste("http://ddragon.leagueoflegends.com/cdn/", current_patch, 
                       "/data/en_US/champion.json", sep = "")
 champion_summary <- content(GET(champion_summary_url), as = "parsed")
-jsonedit(champion_summary, mode = "view")
+listviewer::jsonedit(champion_summary, mode = "view")
 
 # as a first step, the dataframe needs columns "id, key, tags, stats"
 # v1 <- map_chr(champion_summary$data, "id")
@@ -53,7 +53,66 @@ for (i in champions_df$champion_name[101:length(champions_df$champion_name)]){
 # save(champion_specifics, file = "data/champion_specifics.RData")
 
 # qa: Akali Q has no spell value in effect burn variable
-jsonedit(champion_specifics[[3]], mode = "view")
+listviewer::jsonedit(champion_specifics[[3]], mode = "view")
+
+load("data/champion_specifics.RData")
+
+listviewer::jsonedit(champion_specifics, mode = "view")
+
+# a dataset to check how many champions have no effect burn variable
+# champion spell1 effectburn 1
+# champion spell1 effectburn 2
+# champion spell2 effectburn 1
+# get champion spell variables
+get_spell_var <- function(var, var_rename){
+  champions_df <- champion_specifics %>%
+    map(~map(.x, `[`, "spells")) %>%
+    map(~map(.x, ~map(.x, ~map(.x, var)))) %>%
+    map_dfc(unlist) %>%
+    mutate(label = c("Q", "W", "E", "R")) %>%
+    pivot_longer(!label,  names_to = "champion", values_to = var_rename) %>%
+    mutate(key = names(var_rename)) %>%
+    arrange(champion)
+  return(champions_df)
+}
+
+effectburn <- champion_specifics %>%
+  # get spells sublist
+  map(~map(.x, `[`, "spells")) %>%
+  # get effectBurn sublist
+  map(~map(.x, ~map(.x, ~map(.x, "effectBurn")))) %>%
+  # label each spell
+  map(~map(.x, ~map(.x, setNames, c("Q", "W", "E", "R")))) %>%
+  # consolidate a dataframe
+  map_dfr(
+    ~map_dfr(.x, 
+             ~map_dfr(.x, 
+                      ~map_dfr(.x, 
+                               ~as.data.frame(as.matrix(.x)), .id = "label"))), .id = "champion") %>%
+  rename(effectburn_value = V1) %>%
+  # remove first null in every spell
+  group_by(champion) %>%
+  filter(effectburn_value != "NULL") %>%
+  ungroup()
+
+champions_df <- get_spell_var("id", "spell1") %>%
+  # enrich champions_df by spell name
+  left_join(get_spell_var("name", "spell2"),
+            by = c("champion" = "champion", "label" = "label")) %>%
+  # enrich champions_df by spell value
+  left_join(effectburn,
+            by = c("champion" = "champion", "label" = "label"))
+
+# 29 champions have no effect burn values
+champions_df %>%
+  group_by(champion) %>%
+  filter(map_lgl(effectburn_value, ~.x != 0)) %>%
+  ungroup() %>%
+  distinct(champion)
+
+
+# for every spell sublist, only variables id, name and effectburn are kept
+
 
 # is champion key same as champion id?
 load("data/matches_game.RData")
