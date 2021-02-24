@@ -59,6 +59,9 @@ load("data/champion_specifics.RData")
 
 listviewer::jsonedit(champion_specifics, mode = "view")
 
+# effectburn keeps values of (nonexhaustive) controlling period, damage values, cost values (if health)
+# details of a spell related values can be put in vars, effectBurn, or costBurn
+# most likely unified metrics of spells across champions are cooldownBurn, costBurn, rangeBurn
 # a dataset to check how many champions have no effect burn variable
 # champion spell1 effectburn 1
 # champion spell1 effectburn 2
