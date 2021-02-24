@@ -1,4 +1,5 @@
 library(tidyverse)
+library(httr)
 
 current_patch <- "11.4.1"
 champion_summary_url <- paste("http://ddragon.leagueoflegends.com/cdn/", current_patch, 
@@ -37,7 +38,9 @@ champions_df <- v4 %>%
   inner_join(v3_1, by = "champion_name") %>%
   inner_join(v3_2, by = "champion_name")
 
-# enrich champion data with specifics (spells and passive)
+# save(champions_df, file = "data/champion_stats_df.RData")
+
+# enrich champion data with spells data
 get_champion_specifics <- function(champion_name, current_patch = "11.4.1"){
   current_patch <- current_patch
   champion_url <- paste("http://ddragon.leagueoflegends.com/cdn/", current_patch, 
@@ -52,13 +55,49 @@ for (i in champions_df$champion_name[101:length(champions_df$champion_name)]){
 }
 # save(champion_specifics, file = "data/champion_specifics.RData")
 
-# qa: Akali Q has no spell value in effect burn variable
-listviewer::jsonedit(champion_specifics[[3]], mode = "view")
-
 load("data/champion_specifics.RData")
 
 listviewer::jsonedit(champion_specifics, mode = "view")
 
+# a separate champion_spells_df dataframe containing cooldownBurn, costBurn, rangeBurn
+# a helper function 
+# get champion spell variables
+get_spell_var <- function(var, var_rename){
+  champions_df <- champion_specifics %>%
+    map(~map(.x, `[`, "spells")) %>%
+    map(~map(.x, ~map(.x, ~map(.x, var)))) %>%
+    map_dfc(unlist) %>%
+    mutate(label = factor(c("Q", "W", "E", "R"), levels = c("Q", "W", "E", "R"))) %>%
+    pivot_longer(!label,  names_to = "champion", values_to = var_rename) %>%
+    mutate(key = names(var_rename)) %>%
+    arrange(champion)
+  return(champions_df)
+}
+
+champions_spells_df <- get_spell_var("id", "spell1") %>%
+  # enrich champions_spells_df by spell name
+  left_join(get_spell_var("name", "spell2"),
+            by = c("champion" = "champion", "label" = "label")) %>%
+  # enrich champions_spells_df by cooldownBurn
+  left_join(get_spell_var("cooldownBurn", "cooldown_time"),
+            by = c("champion" = "champion", "label" = "label")) %>%
+  # enrich champions_spells_df by costBurn
+  left_join(get_spell_var("costBurn", "spell_cost"),
+            by = c("champion" = "champion", "label" = "label")) %>%
+  # enrich champions_spells_df by rangeBurn
+  left_join(get_spell_var("rangeBurn", "spell_range"),
+            by = c("champion" = "champion", "label" = "label"))
+
+# clean the df
+champions_spells_df <- champions_spells_df%>%
+  relocate(champion) %>%
+  arrange(champion, label)
+
+## below codes fetch effectBurn values and map them into each spell. Due to the vague description of
+## which value corresponds to which effect, this part is de-prioritized.
+
+# qa: Akali Q has no spell value in effect burn variable
+# listviewer::jsonedit(champion_specifics[[3]], mode = "view")
 # effectburn keeps values of (nonexhaustive) controlling period, damage values, cost values (if health)
 # details of a spell related values can be put in vars, effectBurn, or costBurn
 # most likely unified metrics of spells across champions are cooldownBurn, costBurn, rangeBurn
@@ -66,6 +105,7 @@ listviewer::jsonedit(champion_specifics, mode = "view")
 # champion spell1 effectburn 1
 # champion spell1 effectburn 2
 # champion spell2 effectburn 1
+
 # get champion spell variables
 get_spell_var <- function(var, var_rename){
   champions_df <- champion_specifics %>%
@@ -98,7 +138,8 @@ effectburn <- champion_specifics %>%
   filter(effectburn_value != "NULL") %>%
   ungroup()
 
-champions_df <- get_spell_var("id", "spell1") %>%
+# for every spell sublist, only variables id, name and effectBurn are kept
+champions_spells_df <- get_spell_var("id", "spell1") %>%
   # enrich champions_df by spell name
   left_join(get_spell_var("name", "spell2"),
             by = c("champion" = "champion", "label" = "label")) %>%
@@ -106,16 +147,12 @@ champions_df <- get_spell_var("id", "spell1") %>%
   left_join(effectburn,
             by = c("champion" = "champion", "label" = "label"))
 
-# 29 champions have no effect burn values
-champions_df %>%
-  group_by(champion) %>%
-  filter(map_lgl(effectburn_value, ~.x != 0)) %>%
-  ungroup() %>%
-  distinct(champion)
-
-
-# for every spell sublist, only variables id, name and effectburn are kept
-
+# # 29 champions have no effect burn values
+# champions_spells_df %>%
+#   group_by(champion) %>%
+#   filter(map_lgl(effectburn_value, ~.x != 0)) %>%
+#   ungroup() %>%
+#   distinct(champion)
 
 # is champion key same as champion id?
 load("data/matches_game.RData")
