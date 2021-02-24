@@ -38,6 +38,10 @@ champions_df <- v4 %>%
   inner_join(v3_1, by = "champion_name") %>%
   inner_join(v3_2, by = "champion_name")
 
+# clean the df
+champions_df <- champions_df %>%
+  mutate(across(everything(), type.convert, as.is = TRUE))
+
 # save(champions_df, file = "data/champion_stats_df.RData")
 
 # enrich champion data with spells data
@@ -89,9 +93,26 @@ champions_spells_df <- get_spell_var("id", "spell1") %>%
             by = c("champion" = "champion", "label" = "label"))
 
 # clean the df
-champions_spells_df <- champions_spells_df%>%
+# names(champions_spells_df$spell_range) <- NULL
+champions_spells_df <- champions_spells_df %>%
   relocate(champion) %>%
-  arrange(champion, label)
+  arrange(champion, label) %>%
+  # separate cooldown_time into 6 levels (e.g. Jayce has 6 levels for some spells)
+  separate(cooldown_time, 
+          into = paste("cooldown_time", "_lv", 1:6, sep = ""), 
+          sep = "/",
+          convert = TRUE) %>%
+  # separate spell_cost
+  separate(spell_cost, 
+           into = paste("spell_cost", "_lv", 1:6, sep = ""), 
+           sep = "/",
+           convert = TRUE) %>%
+  # separate spell_range
+  separate(spell_range, 
+           into = paste("spell_range", "_lv", 1:6, sep = ""), 
+           sep = "/",
+           convert = TRUE)
+save(champions_spells_df, file = "data/champions_spells_df.RData")
 
 ## below codes fetch effectBurn values and map them into each spell. Due to the vague description of
 ## which value corresponds to which effect, this part is de-prioritized.
