@@ -94,7 +94,6 @@ get_players_dataframe <- function(summoner_name){
   return(players_df)
 }
 
-
 # is 1-5 participants always one team?
 
 # draft below

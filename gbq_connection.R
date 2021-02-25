@@ -45,7 +45,7 @@ load("data/champion_stats_df.RData")
 load("data/champions_spells_df.RData")
 bq_dataset_create(bq_dataset(project, "riot_lol_champions_info"), location = "europe-west3")
 write_to_bq(project, dataset = "riot_lol_champions_info", table = "champions_df", df = champions_df, gcloud = TRUE)
-write_to_bq(project, dataset = "riot_lol_champions_info", table = "champions_spells_df", df = champions_df, gcloud = TRUE)
+write_to_bq(project, dataset = "riot_lol_champions_info", table = "champions_spells_df", df = champions_spells_df, gcloud = TRUE)
 
 
 # deactivate access token
