@@ -28,7 +28,7 @@ get_matches_info <- function(summoner = "NA", match_id){
   source("C:/Users/jmlhz/Documents/riot/access_api.R")
   # historical stats of matches
   matches_game <- get_multiple("https://euw1.api.riotgames.com/lol/match/v4/matches/", identifier = match_id, "text")
-  save(matches_game, paste("./data/", summoner, "_matches_info.RData"))
+  save(matches_game, file = paste("./data/", summoner, "_matches_info.RData", sep = ""))
   return(matches_game)
 }
 
