@@ -15,7 +15,7 @@ get_content <- function(url_component, identifier, as = "parsed"){
 
 # multiple requests with rate limits
 get_multiple <- function(url_component, identifier,  as = "parsed"){
-  # storing returns of each call
+  # the function takes a vector (identifier) and repeats api calls to store results into a list
   a <- list()
   # count
   m = 1
