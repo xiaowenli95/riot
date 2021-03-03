@@ -7,3 +7,5 @@
   * champions_spells_df
 * riot_lol_players_info
   * players_info
+  * matches_df
+  * queue_info_df
