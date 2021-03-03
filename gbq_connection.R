@@ -47,6 +47,12 @@ bq_dataset_create(bq_dataset(project, "riot_lol_champions_info"), location = "eu
 write_to_bq(project, dataset = "riot_lol_champions_info", table = "champions_df", df = champions_df, gcloud = TRUE)
 write_to_bq(project, dataset = "riot_lol_champions_info", table = "champions_spells_df", df = champions_spells_df, gcloud = TRUE)
 
+# 2021-03-01 upload matches_df and queue_info_df
+load("data/20210303_some_players_match_history.Rdata")
+write_to_bq(project, dataset = "riot_lol_players_info", table = "matches_df", df = matches_df, gcloud = TRUE)
+write_to_bq(project, dataset = "riot_lol_players_info", table = "queue_info_df", df = queue_info_df, gcloud = TRUE)
+
+
 
 # deactivate access token
 bq_deauth()
