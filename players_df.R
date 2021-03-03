@@ -6,36 +6,11 @@ library(tidyverse)
 library(jsonlite)
 library(listviewer)
 
-get_accountid <- function(summoner_name){
-  # get api key
-  source("C:/Users/jmlhz/Documents/riot/access_api.R")
-  # summoner account id
-  account_id <- get_content("https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-name/", summoner_name)$accountId
-  return(account_id)
-}
-
-get_matchid <- function(account_id){
-  source("C:/Users/jmlhz/Documents/riot/access_api.R")
-  # matches history of the specified summoner
-  matches_summoner <- fromJSON(get_content("https://euw1.api.riotgames.com/lol/match/v4/matchlists/by-account/", account_id, as = "text"))$matches
-  # matches_summoner_cleaned <- matches_summoner %>%
-  #   mutate(date = as.POSIXct(timestamp/1000, origin = "1970-01-01"))
-  match_id <- matches_summoner$gameId
-  return(match_id)
-}
-
-get_matches_info <- function(summoner = "NA", match_id){
-  source("C:/Users/jmlhz/Documents/riot/access_api.R")
-  # historical stats of matches
-  matches_game <- get_multiple("https://euw1.api.riotgames.com/lol/match/v4/matches/", identifier = match_id, "text")
-  save(matches_game, file = paste("./data/", summoner, "_matches_info.RData", sep = ""))
-  return(matches_game)
-}
 
 # prep: get a player's playing history dataframe, containing its teammates and opponents performance and info
 get_players_dataframe <- function(summoner_name){
   
-  source("C:/Users/jmlhz/Documents/riot/access_api.R")
+  source("./access_api.R")
   
   # summoner account id
   account_id <- get_accountid(summoner_name)
@@ -44,7 +19,7 @@ get_players_dataframe <- function(summoner_name){
   match_id <- get_matchid(account_id)
   
   # matches info (match_id a vector)
-  matches_game <- get_matches_info(match_id)
+  matches_game <- get_matches_info(summoner_name ,match_id)
   
   # qa: remove elements not conforming with majority(possibly due to bad return)
   t1 <- map(matches_game, length) %>%
