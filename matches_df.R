@@ -37,60 +37,68 @@ library(listviewer)
 load("./data/ Wildwo0olf _matches_info.RData")
 jsonedit(matches_game, mode = "view")
 
-# dataframe of queue info
-queue_info_var <- c("gameId", "queueId", "gameDuration", "mapId")
-# first fetch all variables into lists, then bind rows to transform them into a dataframe
-queue_info_df <- matches_game %>%
-  map(~.x[queue_info_var]) %>%
-  map_dfr(~as.data.frame(.x))
-# get fifth hierarchy
-player_var_1 <- c("participantId", "teamId", "championId")
-# preserve matchid in the temporary dataframe for identification
-matchid <- unlist(map(matches_game, ~as.character(.x["gameId"])))
-temp1 <- matches_game %>%
-  setNames(matchid) %>%
-  # dive
-  map(~.x["participants"]) %>%
-  # extraction
-  map(~map(.x, ~map(.x, ~.x[player_var_1]))) %>%
-  # bind rows
-  map_dfr(~map_dfr(.x, ~map_dfr(.x, ~as.data.frame(.x))), .id = "matchid")
-# get sixth hierarchy
-player_var_2 <- c("participantId",
-                  "win",
-                  "kills",
-                  "deaths",
-                  "assists",
-                  "longestTimeSpentLiving",
-                  "totalDamageDealtToChampions",
-                  "totalDamageDealtToChampions",
-                  "physicalDamageDealtToChampions",
-                  "trueDamageDealtToChampions",
-                  "totalHeal",
-                  "visionScore",
-                  "totalDamageTaken",
-                  "magicalDamageTaken",
-                  "physicalDamageTaken",
-                  "trueDamageTaken",
-                  "goldEarned",
-                  "goldSpent",
-                  "totalMinionsKilled",
-                  "totalTimeCrowdControlDealt",
-                  "wardsPlaced")
-temp2 <- matches_game %>%
-  setNames(matchid) %>%
-  # dive 1
-  map(~.x["participants"]) %>%
-  # dive 2
-  map(~map(.x, ~map(.x, ~.x["stats"]))) %>%
-  # extraction
-  map(~map(.x, ~map(.x, ~map(.x, ~.x[player_var_2])))) %>%
-  # bind rows
-  map_dfr(~map_dfr(.x, ~map_dfr(.x, ~map_dfr(.x, ~as.data.frame(.x)))), .id = "matchid")
+get_match_info <- function(match_info){
+  # first fetch all variables into lists, then bind rows to transform them into a dataframe
+  # get third hierarchy. Dataframe of queue info
+  queue_info_var <- c("gameId", "queueId", "gameDuration", "mapId")
+  queue_info_df <- match_info %>%
+    map(~.x[queue_info_var]) %>%
+    map_dfr(~as.data.frame(.x))
+  a <- list("queue_info_df" = queue_info_df)
+  
+  # get fifth hierarchy
+  player_var_1 <- c("participantId", "teamId", "championId")
+  # preserve matchid in the temporary dataframe for identification
+  matchid <- unlist(map(match_info, ~as.character(.x["gameId"])))
+  temp1 <- match_info %>%
+    setNames(matchid) %>%
+    # dive
+    map(~.x["participants"]) %>%
+    # extraction
+    map(~map(.x, ~map(.x, ~.x[player_var_1]))) %>%
+    # bind rows
+    map_dfr(~map_dfr(.x, ~map_dfr(.x, ~as.data.frame(.x))), .id = "matchid")
+  
+  # get sixth hierarchy
+  player_var_2 <- c("participantId",
+                    "win",
+                    "kills",
+                    "deaths",
+                    "assists",
+                    "longestTimeSpentLiving",
+                    "totalDamageDealtToChampions",
+                    "totalDamageDealtToChampions",
+                    "physicalDamageDealtToChampions",
+                    "trueDamageDealtToChampions",
+                    "totalHeal",
+                    "visionScore",
+                    "totalDamageTaken",
+                    "magicalDamageTaken",
+                    "physicalDamageTaken",
+                    "trueDamageTaken",
+                    "goldEarned",
+                    "goldSpent",
+                    "totalMinionsKilled",
+                    "totalTimeCrowdControlDealt",
+                    "wardsPlaced")
+  temp2 <- match_info %>%
+    setNames(matchid) %>%
+    # dive 1
+    map(~.x["participants"]) %>%
+    # dive 2
+    map(~map(.x, ~map(.x, ~.x["stats"]))) %>%
+    # extraction
+    map(~map(.x, ~map(.x, ~map(.x, ~.x[player_var_2])))) %>%
+    # bind rows
+    map_dfr(~map_dfr(.x, ~map_dfr(.x, ~map_dfr(.x, ~as.data.frame(.x)))), .id = "matchid")
+  
+  # merge temp tables
+  matches_df <- temp1 %>%
+    inner_join(temp2, by = c("matchid", "participantId"))
+  
+  a$"matches_df" <- matches_df
+  return(a)
+}
 
-# merge temp tables
-matches_df <- temp1 %>%
-  inner_join(temp2, by = c("matchid", "participantId"))
-
-                         
+a <- get_match_info(matches_game)
           
