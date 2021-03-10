@@ -52,7 +52,13 @@ load("data/20210303_some_players_match_history.Rdata")
 write_to_bq(project, dataset = "riot_lol_players_info", table = "matches_df", df = matches_df, gcloud = TRUE)
 write_to_bq(project, dataset = "riot_lol_players_info", table = "queue_info_df", df = queue_info_df, gcloud = TRUE)
 
-
+## execute sql
+# read the sql file. Works when there is no "//" started comment
+q1 <- read_file("./sql/logistic_table.sql")
+# execte query within the project
+t1_create <- bq_project_query(project, q1)
+# return the result table
+t1 <- bq_table_download(t1_create)
 
 # deactivate access token
 bq_deauth()
