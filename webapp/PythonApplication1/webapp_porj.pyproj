@@ -42,6 +42,8 @@
     <Folder Include="templates\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="app.yaml" />
+    <Content Include="requirements.txt" />
     <Content Include="templates\base.html" />
     <Content Include="templates\index.html" />
   </ItemGroup>
